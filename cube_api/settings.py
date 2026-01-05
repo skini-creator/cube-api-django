@@ -4,7 +4,8 @@ Django settings for cube_api project.
 
 from pathlib import Path
 import os
-import environ # Import pour gérer le fichier .env
+import environ 
+from datetime import timedelta # NOUVEL IMPORT
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -16,7 +17,7 @@ env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY') # Utilisation de la clé du .env
+SECRET_KEY = env('SECRET_KEY') 
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -36,16 +37,17 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Applications tierces (pour l'API)
-    'rest_framework', # Ajout de Django Rest Framework
-    'corsheaders',    # Ajout de CORS (si nécessaire pour le frontend)
+    'rest_framework', 
+    'corsheaders',    
+    'rest_framework_simplejwt', # AJOUT CLÉ POUR JWT
 
     # VOTRE APPLICATION
-    'core_api',       # Ajout de votre application 'core_api'
+    'core_api',       
 ]
 
 MIDDLEWARE = [
     # Middleware pour CORS (doit être placé très haut)
-    'corsheaders.middleware.CorsMiddleware', # Ajout de CorsMiddleware
+    'corsheaders.middleware.CorsMiddleware', 
     
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -77,19 +79,15 @@ WSGI_APPLICATION = 'cube_api.wsgi.application'
 
 
 # Database
-# Configuration PostgreSQL utilisant les variables du .env
 DATABASES = {
     'default': env.db_url(
         'DATABASE_URL',
-        # URL construite à partir des variables .env
         default=f'postgres://{env("PG_USER")}:{env("PG_PASSWORD")}@{env("PG_HOST")}:{env("PG_PORT")}/{env("PG_DB_NAME")}'
     )
 }
 
 
 # Password validation
-# ... (laissez cette section telle quelle)
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -106,13 +104,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Modèle Utilisateur Personnalisé
-# Indique à Django d'utiliser votre modèle 'Client' comme modèle d'utilisateur principal
-AUTH_USER_MODEL = 'core_api.Client' 
+AUTH_USER_MODEL = 'core_api.CustomUser' 
 
 
 # Internationalization
-# ... (laissez cette section telle quelle)
-
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
@@ -120,11 +115,28 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# ... (laissez cette section telle quelle)
-
 STATIC_URL = 'static/'
 
 
-# CORS Settings (Ajuster selon vos besoins en production)
+# CORS Settings
 CORS_ALLOW_ALL_ORIGINS = True 
-# Si vous voulez restreindre, utilisez CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'https://votre-frontend.com']
+
+# -----------------------------------------------------
+# CONFIGURATION DE L'API REST & JWT
+# -----------------------------------------------------
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'USER_ID_FIELD': 'id',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+}

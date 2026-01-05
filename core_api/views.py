@@ -11,7 +11,6 @@ from .serializers import (
 )
 
 # --- Permissions Personnalisées ---
-# Cette classe assure que seul un utilisateur ayant le rôle 'ADMIN' peut accéder.
 class IsAdmin(permissions.BasePermission):
     """
     Permet l'accès uniquement aux utilisateurs ayant le rôle ADMIN.
@@ -26,23 +25,16 @@ class IsAdmin(permissions.BasePermission):
 class RegisterView(generics.CreateAPIView):
     """
     Endpoint pour l'enregistrement d'un nouvel utilisateur.
-    Utilise le sérialiseur UserSerializer pour valider les données et créer un utilisateur.
     """
     queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny] # Tout le monde peut s'enregistrer
+    permission_classes = [permissions.AllowAny] 
 
     def perform_create(self, serializer):
-        # La méthode create du UserSerializer gère le hashage du mot de passe
         serializer.save()
-
-# Note : Les vues pour la connexion (Login) et la déconnexion (Logout) seront 
-# implémentées en utilisant Simple JWT plus tard, après avoir installé le package.
-
 
 # --- 2. VUES DE GESTION DES PLATS (CRUD) ---
 
-# Gère les requêtes GET (liste) et POST (création)
 class PlatListCreateView(generics.ListCreateAPIView):
     """
     Permet de lister tous les plats (GET) ou de créer un nouveau plat (POST).
@@ -58,21 +50,19 @@ class PlatListCreateView(generics.ListCreateAPIView):
         """
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated(), IsAdmin()] # Exige l'authentification ET le rôle ADMIN
+        # Utilise IsAuthenticated et IsAdmin, car la permission par défaut du projet est IsAuthenticated
+        return [permissions.IsAuthenticated(), IsAdmin()] 
 
     def perform_create(self, serializer):
-        # Sauvegarde le plat en liant l'administrateur qui l'a créé
         serializer.save(auteur=self.request.user)
 
 
-# Gère les requêtes GET (détail), PUT/PATCH (modification), et DELETE (suppression)
 class PlatRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     """
     Permet de récupérer les détails, modifier ou supprimer un plat spécifique.
     """
     queryset = Plat.objects.all()
     serializer_class = PlatSerializer
-    # Le lookup_field par défaut est 'pk' (ID), ce qui est suffisant.
 
     def get_permissions(self):
         """
@@ -82,4 +72,4 @@ class PlatRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         """
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated(), IsAdmin()] # Exige l'authentification ET le rôle ADMIN
+        return [permissions.IsAuthenticated(), IsAdmin()]
