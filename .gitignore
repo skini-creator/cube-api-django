@@ -1,0 +1,13 @@
+# .gitignore
+# Environnement virtuel
+venv/
+*.pyc
+__pycache__/
+
+# Django
+db.sqlite3
+/media
+/static
+
+# SECRETS (TRÈS IMPORTANT !)
+.env
