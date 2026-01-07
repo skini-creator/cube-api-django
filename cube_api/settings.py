@@ -5,7 +5,7 @@ Django settings for cube_api project.
 from pathlib import Path
 import os
 import environ 
-from datetime import timedelta # NOUVEL IMPORT
+from datetime import timedelta # NOUVEL IMPORT pour la durée de vie des tokens
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,10 +39,11 @@ INSTALLED_APPS = [
     # Applications tierces (pour l'API)
     'rest_framework', 
     'corsheaders',    
-    'rest_framework_simplejwt', # AJOUT CLÉ POUR JWT
+    'rest_framework_simplejwt', # CLÉ pour l'authentification par Token JWT
 
-    # VOTRE APPLICATION
-    'core_api',       
+    # VOTRE APPLICATION 
+    # Correction : Référence complète à la classe de configuration pour un chargement correct des modèles
+    'core_api.apps.CoreApiConfig',
 ]
 
 MIDDLEWARE = [
@@ -104,6 +105,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Modèle Utilisateur Personnalisé
+# Doit correspondre exactement au nom de la classe dans core_api/models.py
 AUTH_USER_MODEL = 'core_api.CustomUser' 
 
 
@@ -127,16 +129,21 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        # Définit JWT comme la méthode d'authentification par défaut
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
+        # Définit l'authentification requise par défaut pour tous les endpoints
         'rest_framework.permissions.IsAuthenticated',
     )
 }
 
 SIMPLE_JWT = {
+    # Durée de vie du token d'accès
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    # Durée de vie du token de rafraîchissement
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    
     'USER_ID_FIELD': 'id',
     'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
 }
